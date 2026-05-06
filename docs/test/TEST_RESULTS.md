@@ -114,9 +114,9 @@ $zip = "dist\bookmark-purpose-organizer-store-$($manifest.version).zip"
 
 寸法確認:
 
-- `01-category-rules-1280x800.png`: 1280x800
-- `02-site-assignment-1280x800.png`: 1280x800
-- `03-scan-preview-1280x800.png`: 1280x800
-- `04-safe-apply-backup-1280x800.png`: 1280x800
-- `05-link-check-restore-1280x800.png`: 1280x800
+- `01-scan-results-1280x800.png`: 1280x800
+- `02-apply-confirmation-1280x800.png`: 1280x800
+- `03-folder-result-1280x800.png`: 1280x800
+- `04-options-rules-1280x800.png`: 1280x800
+- `05-link-check-backup-1280x800.png`: 1280x800
 - `small_promo_440x280.png`: 440x280
