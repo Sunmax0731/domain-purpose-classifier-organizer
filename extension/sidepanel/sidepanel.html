@@ -22,7 +22,7 @@
           <strong id="bookmarkCount">0</strong>
         </article>
         <article>
-          <span>移動候補</span>
+          <span>整理候補</span>
           <strong id="actionCount">0</strong>
         </article>
         <article>
@@ -34,14 +34,40 @@
       <section class="panel-section">
         <div class="section-heading">
           <h2>分類結果</h2>
-          <button id="openOptionsButton" type="button">ルール編集</button>
+          <div class="section-actions">
+            <button id="openOptionsButton" type="button">Side Panelで編集</button>
+            <button id="openOptionsTabButton" type="button">別タブ</button>
+          </div>
         </div>
         <div id="resultList" class="result-list empty">スキャンすると分類候補が表示されます。</div>
+      </section>
+
+      <section id="optionsPanel" class="panel-section options-embed-section" hidden>
+        <div class="section-heading">
+          <h2>分類ルール編集</h2>
+          <button id="closeOptionsPanelButton" type="button">閉じる</button>
+        </div>
+        <iframe
+          id="optionsFrame"
+          class="options-frame"
+          title="分類ルール Options"
+          data-src="../options/options.html"
+        ></iframe>
       </section>
 
       <section class="panel-section">
         <h2>変更プレビュー</h2>
         <div id="planList" class="plan-list empty">整理計画はまだありません。</div>
+      </section>
+
+      <section class="panel-section link-check-section">
+        <div class="section-heading">
+          <h2>リンク切れチェック</h2>
+          <button id="checkLinksButton" type="button">リンク切れを確認</button>
+        </div>
+        <p id="linkCheckSummary">未チェックです。</p>
+        <div id="brokenLinkList" class="broken-link-list empty">リンク切れ候補はまだありません。</div>
+        <button id="deleteBrokenLinksButton" type="button" disabled>確認してリンク切れを削除</button>
       </section>
 
       <section class="panel-section backup-section">

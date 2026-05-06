@@ -3,10 +3,20 @@
   "name": "Bookmark Purpose Organizer",
   "version": "0.1.0",
   "description": "Classify saved bookmarks by domain, purpose, usage, and theme before safely organizing them into folders.",
+  "icons": {
+    "16": "icons/icon_16.png",
+    "32": "icons/icon_32.png",
+    "48": "icons/icon_48.png",
+    "128": "icons/icon_128.png"
+  },
   "permissions": [
     "bookmarks",
     "storage",
     "sidePanel"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js",
@@ -14,6 +24,12 @@
   },
   "action": {
     "default_title": "Bookmark Purpose Organizer",
+    "default_icon": {
+      "16": "icons/icon_16.png",
+      "32": "icons/icon_32.png",
+      "48": "icons/icon_48.png",
+      "128": "icons/icon_128.png"
+    },
     "default_popup": "popup/popup.html"
   },
   "options_page": "options/options.html",

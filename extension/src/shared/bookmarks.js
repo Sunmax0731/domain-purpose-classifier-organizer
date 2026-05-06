@@ -14,7 +14,8 @@ export function getDomain(url) {
 export function getSearchText(bookmark) {
   const url = bookmark.url || "";
   const domain = bookmark.domain || getDomain(url);
-  return `${bookmark.title || ""} ${url} ${domain}`.toLowerCase();
+  const path = Array.isArray(bookmark.path) ? bookmark.path.join(" ") : "";
+  return `${bookmark.title || ""} ${url} ${domain} ${path}`.toLowerCase();
 }
 
 export function flattenBookmarkTree(nodes) {

@@ -1,8 +1,11 @@
 export const STORAGE_KEYS = {
   rules: "classificationRules",
+  rulesUserManaged: "classificationRulesUserManaged",
   lastJob: "lastReorganizationJob",
   bookmarkBackup: "bookmarkBackup",
-  bookmarkRestoreJob: "bookmarkRestoreJob"
+  bookmarkRestoreJob: "bookmarkRestoreJob",
+  linkCheckJob: "linkCheckJob",
+  lastBrokenLinkDeletion: "lastBrokenLinkDeletion"
 };
 
 export async function readStorage(key, fallbackValue = null) {
