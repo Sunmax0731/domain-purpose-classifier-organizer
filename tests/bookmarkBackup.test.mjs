@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildRestoreOperations,
   createBookmarkBackup,
+  createRestoreJob,
   createRestoreMoveOptions,
   describeBackup
 } from "../extension/src/shared/bookmarkBackup.js";
@@ -50,14 +51,15 @@ test("describeBackup hides snapshot details", () => {
 test("buildRestoreOperations sorts by parent and index", () => {
   const operations = buildRestoreOperations({
     snapshot: [
-      { id: "b", title: "B", parentId: "2", index: 2 },
-      { id: "a", title: "A", parentId: "2", index: 0 },
-      { id: "c", title: "C", parentId: "1", index: 1 },
+      { id: "b", title: "B", parentId: "2", index: 2, path: ["bar", "later"] },
+      { id: "a", title: "A", parentId: "2", index: 0, path: ["bar"] },
+      { id: "c", title: "C", parentId: "1", index: 1, path: ["other"] },
       { id: "missing-parent", title: "Skip" }
     ]
   });
 
   assert.deepEqual(operations.map((operation) => operation.bookmarkId), ["c", "a", "b"]);
+  assert.deepEqual(operations[2].path, ["bar", "later"]);
 });
 
 test("createRestoreMoveOptions can omit index for fallback restores", () => {
@@ -70,4 +72,25 @@ test("createRestoreMoveOptions can omit index for fallback restores", () => {
 
   assert.deepEqual(createRestoreMoveOptions(operation), { parentId: "2", index: 10 });
   assert.deepEqual(createRestoreMoveOptions(operation, { includeIndex: false }), { parentId: "2" });
+});
+
+test("createRestoreJob initializes progress counters", () => {
+  const job = createRestoreJob(
+    {
+      id: "backup-1",
+      createdAt: "2026-05-06T12:00:00.000Z",
+      snapshot: [
+        { id: "a", title: "A", url: "https://example.com/a", parentId: "1", index: 0 },
+        { id: "b", title: "B", url: "https://example.com/b", parentId: "1", index: 1 }
+      ]
+    },
+    { now: new Date("2026-05-06T12:30:00.000Z") }
+  );
+
+  assert.equal(job.id, "restore-20260506123000000");
+  assert.equal(job.status, "running");
+  assert.equal(job.totalCount, 2);
+  assert.equal(job.nextIndex, 0);
+  assert.equal(job.restoredCount, 0);
+  assert.equal(job.pathFallbackCount, 0);
 });

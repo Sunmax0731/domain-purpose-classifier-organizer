@@ -180,6 +180,32 @@ h2 {
   white-space: pre-wrap;
 }
 
+.warning-list {
+  background: #2a1412;
+  border: 1px solid #7a271a;
+  border-radius: 8px;
+  color: #ffd8d3;
+  display: grid;
+  font-size: 12px;
+  gap: 8px;
+  padding: 10px;
+}
+
+.warning-list[hidden] {
+  display: none;
+}
+
+.warning-list strong,
+.warning-list span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.warning-list span {
+  color: #ffb4ab;
+  margin-top: 2px;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     background: #101418;

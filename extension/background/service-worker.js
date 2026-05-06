@@ -2,8 +2,10 @@ import { flattenBookmarkTree } from "../src/shared/bookmarks.js";
 import {
   buildRestoreOperations,
   createBookmarkBackup,
+  createRestoreJob,
   createRestoreMoveOptions,
-  describeBackup
+  describeBackup,
+  summarizeRestoreJob
 } from "../src/shared/bookmarkBackup.js";
 import { DEFAULT_RULES, classifyBookmarks, sanitizeRules, validateRule } from "../src/shared/classifier.js";
 import { buildReorganizationPlan, describePlan } from "../src/shared/reorgPlan.js";
@@ -45,6 +47,12 @@ async function handleMessage(message, sender) {
       return createCurrentBookmarkBackup();
     case "GET_BOOKMARK_BACKUP":
       return describeBackup(await readStorage(STORAGE_KEYS.bookmarkBackup, null));
+    case "START_RESTORE_BOOKMARK_BACKUP":
+      return startBookmarkBackupRestore();
+    case "RUN_RESTORE_STEP":
+      return runRestoreStep(message.limit);
+    case "GET_RESTORE_JOB":
+      return summarizeRestoreJob(await readStorage(STORAGE_KEYS.bookmarkRestoreJob, null));
     case "RESTORE_BOOKMARK_BACKUP":
       return restoreBookmarkBackup();
     case "OPEN_SIDE_PANEL":
@@ -64,38 +72,82 @@ async function createCurrentBookmarkBackup() {
 }
 
 async function restoreBookmarkBackup() {
+  const job = await startBookmarkBackupRestore();
+  let current = job;
+  while (current?.status === "running") {
+    current = await runRestoreStep(25);
+  }
+  return {
+    backup: current.sourceBackup,
+    restoredCount: current.restoredCount,
+    adjustedCount: current.adjustedCount,
+    pathFallbackCount: current.pathFallbackCount,
+    warningCount: current.warningCount,
+    warnings: current.warnings
+  };
+}
+
+async function startBookmarkBackupRestore() {
   const backup = await readStorage(STORAGE_KEYS.bookmarkBackup, null);
-  const operations = buildRestoreOperations(backup);
-  if (operations.length === 0) {
+  const job = createRestoreJob(backup);
+  if (job.totalCount === 0) {
     throw new Error("復元できるバックアップがありません。");
   }
 
-  const restored = [];
-  const adjusted = [];
-  const warnings = [];
-  for (const operation of operations) {
+  await writeStorage(STORAGE_KEYS.bookmarkRestoreJob, job);
+  return summarizeRestoreJob(job);
+}
+
+async function runRestoreStep(limit = 20) {
+  const job = await readStorage(STORAGE_KEYS.bookmarkRestoreJob, null);
+  if (!job || !Array.isArray(job.operations)) {
+    throw new Error("実行中の復元ジョブがありません。");
+  }
+
+  if (job.status !== "running") {
+    return summarizeRestoreJob(job);
+  }
+
+  const batchSize = Math.max(1, Math.min(Number(limit) || 20, 50));
+  let processed = 0;
+  while (job.nextIndex < job.operations.length && processed < batchSize) {
+    const operation = job.operations[job.nextIndex];
+    job.nextIndex += 1;
+    processed += 1;
+
     try {
       const result = await moveBookmarkWithIndexFallback(operation);
-      restored.push({ bookmarkId: operation.bookmarkId, title: operation.title, moved: result.moved });
+      job.restoredCount += 1;
       if (result.usedIndexFallback) {
-        adjusted.push({ bookmarkId: operation.bookmarkId, title: operation.title });
+        job.adjustedCount += 1;
       }
     } catch (error) {
-      warnings.push({
-        bookmarkId: operation.bookmarkId,
-        title: operation.title,
-        error: error.message || String(error)
-      });
+      try {
+        const result = await moveBookmarkWithPathFallback(operation);
+        job.restoredCount += 1;
+        job.pathFallbackCount = (job.pathFallbackCount || 0) + 1;
+        if (result.usedIndexFallback) {
+          job.adjustedCount += 1;
+        }
+      } catch (pathError) {
+        job.warningCount += 1;
+        job.warnings.push({
+          bookmarkId: operation.bookmarkId,
+          title: operation.title,
+          path: operation.path,
+          error: pathError.message || String(pathError),
+          firstError: error.message || String(error)
+        });
+      }
     }
   }
 
-  return {
-    backup: describeBackup(backup),
-    restoredCount: restored.length,
-    adjustedCount: adjusted.length,
-    warningCount: warnings.length,
-    warnings
-  };
+  if (job.nextIndex >= job.operations.length) {
+    job.status = job.warningCount > 0 ? "completed-with-warnings" : "completed";
+  }
+  job.updatedAt = new Date().toISOString();
+  await writeStorage(STORAGE_KEYS.bookmarkRestoreJob, job);
+  return summarizeRestoreJob(job);
 }
 
 async function saveRules(rules) {
@@ -232,9 +284,10 @@ async function rollbackLastJob() {
 
 async function moveBookmarkWithIndexFallback(operation) {
   try {
-    const moved = await chrome.bookmarks.move(
-      operation.bookmarkId,
-      createRestoreMoveOptions(operation, { includeIndex: true })
+    const moved = await withTimeout(
+      chrome.bookmarks.move(operation.bookmarkId, createRestoreMoveOptions(operation, { includeIndex: true })),
+      3000,
+      `${operation.title} を保存時の順序へ復元`
     );
     return { moved, usedIndexFallback: false };
   } catch (error) {
@@ -242,12 +295,54 @@ async function moveBookmarkWithIndexFallback(operation) {
       throw error;
     }
 
-    const moved = await chrome.bookmarks.move(
-      operation.bookmarkId,
-      createRestoreMoveOptions(operation, { includeIndex: false })
+    const moved = await withTimeout(
+      chrome.bookmarks.move(operation.bookmarkId, createRestoreMoveOptions(operation, { includeIndex: false })),
+      3000,
+      `${operation.title} を保存時の親フォルダへ復元`
     );
     return { moved, usedIndexFallback: true, originalError: error.message || String(error) };
   }
+}
+
+async function moveBookmarkWithPathFallback(operation) {
+  if (!Array.isArray(operation.path) || operation.path.length === 0) {
+    throw new Error("保存済みフォルダパスがないため、パス復元できません。");
+  }
+
+  const targetParentId = await resolveFolderPath(operation.path);
+  const result = await moveBookmarkWithIndexFallback({
+    ...operation,
+    parentId: targetParentId
+  });
+  return { ...result, usedPathFallback: true };
+}
+
+function withTimeout(promise, timeoutMs, label) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${label} がタイムアウトしました。`)), timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+}
+
+async function resolveFolderPath(pathSegments) {
+  const segments = pathSegments
+    .map((segment) => String(segment || "").trim())
+    .filter(Boolean);
+  if (segments.length === 0) {
+    return getDefaultParentId();
+  }
+
+  const tree = await chrome.bookmarks.getTree();
+  const rootChildren = tree?.[0]?.children || [];
+  const firstRootFolder = rootChildren.find((child) => !child.url && child.title === segments[0]);
+  if (firstRootFolder) {
+    return ensureFolderPath(firstRootFolder.id, segments.slice(1));
+  }
+
+  const defaultParentId = await getDefaultParentId();
+  return ensureFolderPath(defaultParentId, segments);
 }
 
 async function getDefaultParentId() {

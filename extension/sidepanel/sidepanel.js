@@ -19,7 +19,8 @@ const elements = {
   folderCount: document.querySelector("#folderCount"),
   resultList: document.querySelector("#resultList"),
   planList: document.querySelector("#planList"),
-  messageLog: document.querySelector("#messageLog")
+  messageLog: document.querySelector("#messageLog"),
+  restoreWarningList: document.querySelector("#restoreWarningList")
 };
 
 elements.scanButton.addEventListener("click", scanAndClassify);
@@ -61,9 +62,10 @@ async function createBackup() {
   try {
     state.backup = await sendMessage({ type: "CREATE_BOOKMARK_BACKUP" });
     renderBackup();
+    setStatus(`バックアップ作成完了: ${state.backup.bookmarkCount} 件`);
     log(`バックアップを作成しました。対象 ${state.backup.bookmarkCount} 件。`);
   } catch (error) {
-    logError(error);
+    logError(error, "バックアップ作成失敗");
   } finally {
     setBusy(false);
   }
@@ -84,15 +86,69 @@ async function restoreBackup() {
 
   setBusy(true, "バックアップから復元中...");
   try {
-    const payload = await sendMessage({ type: "RESTORE_BOOKMARK_BACKUP" });
+    let payload = await sendMessage({ type: "START_RESTORE_BOOKMARK_BACKUP" });
+    logRestoreProgress(payload);
+    while (payload.status === "running") {
+      payload = await sendMessage({ type: "RUN_RESTORE_STEP", limit: 20 }, 20000);
+      logRestoreProgress(payload);
+    }
     log(
-      `バックアップから復元しました。復元 ${payload.restoredCount} 件、` +
-        `順序調整 ${payload.adjustedCount || 0} 件、警告 ${payload.warningCount} 件。`
+      `バックアップから復元しました。復元 ${payload.restoredCount} / ${payload.totalCount} 件、` +
+        `順序調整 ${payload.adjustedCount || 0} 件、` +
+        `パス復元 ${payload.pathFallbackCount || 0} 件、` +
+        `警告 ${payload.warningCount} 件。`
     );
+    setStatus(`バックアップ復元完了: ${payload.restoredCount}/${payload.totalCount}`);
+    renderRestoreWarnings(payload);
   } catch (error) {
-    logError(error);
+    logError(error, "バックアップ復元失敗");
   } finally {
     setBusy(false);
+  }
+}
+
+function logRestoreProgress(payload) {
+  if (!payload) {
+    return;
+  }
+
+  const done = payload.nextIndex || 0;
+  const total = payload.totalCount || 0;
+  setStatus(`バックアップから復元中... ${done}/${total}`);
+  log(
+    `バックアップから復元中... ${done}/${total} 件。` +
+      `復元 ${payload.restoredCount || 0} 件、` +
+      `順序調整 ${payload.adjustedCount || 0} 件、` +
+      `パス復元 ${payload.pathFallbackCount || 0} 件、` +
+      `警告 ${payload.warningCount || 0} 件。`
+  );
+  renderRestoreWarnings(payload);
+}
+
+function renderRestoreWarnings(payload) {
+  const warnings = payload?.warnings || [];
+  if (warnings.length === 0) {
+    elements.restoreWarningList.hidden = true;
+    elements.restoreWarningList.textContent = "";
+    return;
+  }
+
+  elements.restoreWarningList.hidden = false;
+  elements.restoreWarningList.textContent = "";
+  const heading = document.createElement("strong");
+  heading.textContent = `復元できない項目の詳細: ${warnings.length} 件表示`;
+  elements.restoreWarningList.append(heading);
+
+  for (const warning of warnings) {
+    const item = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = warning.title || warning.bookmarkId;
+    const error = document.createElement("span");
+    error.textContent = warning.error || "詳細不明";
+    const path = document.createElement("span");
+    path.textContent = `保存先: ${(warning.path || []).join(" / ") || "不明"}`;
+    item.append(title, error, path);
+    elements.restoreWarningList.append(item);
   }
 }
 
@@ -120,10 +176,11 @@ async function applyPlan() {
   setBusy(true, "整理を適用中...");
   try {
     const payload = await sendMessage({ type: "APPLY_PLAN", plan: state.plan });
+    setStatus(`整理適用完了: ${payload.appliedCount} 件 / 警告 ${payload.warningCount} 件`);
     log(`整理を適用しました。適用 ${payload.appliedCount} 件、警告 ${payload.warningCount} 件。`);
     elements.applyButton.disabled = true;
   } catch (error) {
-    logError(error);
+    logError(error, "整理適用失敗");
   } finally {
     setBusy(false);
   }
@@ -142,8 +199,9 @@ async function rollbackLast() {
       `復元が完了しました。復元 ${payload.restoredCount} 件、` +
         `順序調整 ${payload.adjustedCount || 0} 件、警告 ${payload.warningCount} 件。`
     );
+    setStatus(`直前復元完了: ${payload.restoredCount} 件 / 警告 ${payload.warningCount} 件`);
   } catch (error) {
-    logError(error);
+    logError(error, "直前復元失敗");
   } finally {
     setBusy(false);
   }
@@ -227,22 +285,40 @@ function setBusy(isBusy, text = null) {
   elements.restoreBackupButton.disabled = isBusy || !state.backup;
   elements.applyButton.disabled = isBusy || !state.plan || state.plan.actions.length === 0;
   if (text) {
-    elements.statusText.textContent = text;
+    setStatus(text);
   }
+}
+
+function setStatus(message) {
+  elements.statusText.textContent = message;
 }
 
 function log(message) {
   elements.messageLog.textContent = message;
 }
 
-function logError(error) {
+function logError(error, statusMessage = "エラー") {
+  setStatus(statusMessage);
   elements.messageLog.textContent = `エラー: ${error.message || String(error)}`;
 }
 
-async function sendMessage(message) {
-  const response = await chrome.runtime.sendMessage(message);
+async function sendMessage(message, timeoutMs = 15000) {
+  const response = await withTimeout(
+    chrome.runtime.sendMessage(message),
+    timeoutMs,
+    `${message.type} の応答`
+  );
   if (!response?.ok) {
     throw new Error(response?.error || "拡張機能から応答がありません。");
   }
   return response.payload;
+}
+
+function withTimeout(promise, timeoutMs, label) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${label} がタイムアウトしました。`)), timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
 }
