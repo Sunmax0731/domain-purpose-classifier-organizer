@@ -44,6 +44,15 @@
         <div id="planList" class="plan-list empty">整理計画はまだありません。</div>
       </section>
 
+      <section class="panel-section backup-section">
+        <div class="section-heading">
+          <h2>テスト用バックアップ</h2>
+          <button id="backupButton" type="button">現在状態をバックアップ</button>
+        </div>
+        <p id="backupStatusText">保存済みバックアップはありません。</p>
+        <button id="restoreBackupButton" type="button" disabled>バックアップから復元</button>
+      </section>
+
       <section class="danger-zone">
         <button id="applyButton" type="button" disabled>プレビュー済みの整理を適用</button>
         <button id="rollbackButton" type="button">直前の整理を復元</button>

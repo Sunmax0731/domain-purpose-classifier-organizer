@@ -8,6 +8,7 @@
 | 分類 | `classifier.js` | ドメイン、キーワード、フォールバック分類が動く |
 | ルール検証 | `classifier.js` | 無効なルールを検出できる |
 | 整理計画 | `reorgPlan.js` | 移動予定、作成予定フォルダ、復元スナップショットを生成できる |
+| バックアップ | `bookmarkBackup.js` | 手動テスト用バックアップと復元操作を生成できる |
 | Manifest | `extension/manifest.json` | Manifest V3 と最小権限が維持されている |
 | Markdown | `docs/`、ルート文書 | 文字化け断片が混入していない |
 

@@ -5,7 +5,7 @@
 | 画面 | 役割 |
 | --- | --- |
 | Popup | 状態要約、Side Panel と Options への導線 |
-| Side Panel | スキャン、分類結果一覧、移動プレビュー、適用、直前復元 |
+| Side Panel | スキャン、分類結果一覧、移動プレビュー、テスト用バックアップ、適用、直前復元 |
 | Options | 分類ルール JSON の編集、初期ルール復元 |
 
 ## データモデル
@@ -54,6 +54,14 @@
 - `foldersToCreate`: 作成予定フォルダパス
 - `rollbackSnapshot`: 復元用の親フォルダ、順序、タイトル、URL
 
+### BookmarkBackup
+
+- `id`
+- `createdAt`
+- `source`: `manual`
+- `bookmarkCount`
+- `snapshot`: 保存時点の URL ブックマーク ID、タイトル、URL、親フォルダ、順序、パス
+
 ## 主要フロー
 
 1. Side Panel で「スキャン」を実行する。
@@ -64,6 +72,17 @@
 6. 確認ダイアログで了承した場合だけ、フォルダ作成と移動を実行する。
 7. 実行履歴と復元スナップショットを `chrome.storage.local` に保存する。
 8. 直前復元では保存済み `parentId` と `index` を使い、可能な範囲で元へ戻す。
+
+## テスト用バックアップフロー
+
+1. Side Panel で「現在状態をバックアップ」を押す。
+2. `chrome.bookmarks.getTree` で現行ブックマークツリーを取得する。
+3. URL を持つブックマークの `id`、`parentId`、`index`、`title`、`url`、`path` を `chrome.storage.local` に保存する。
+4. 繰り返しテスト後に「バックアップから復元」を押す。
+5. 保存済みバックアップの各ブックマークを保存時点の `parentId` と `index` へ戻す。
+6. 復元できない項目は警告件数として表示する。
+
+バックアップ復元は、ブックマーク本体の配置復元を目的とする。テスト中に作成された空フォルダは自動削除しない。
 
 ## 分類ルール
 

@@ -1,4 +1,5 @@
 import { flattenBookmarkTree } from "../src/shared/bookmarks.js";
+import { buildRestoreOperations, createBookmarkBackup, describeBackup } from "../src/shared/bookmarkBackup.js";
 import { DEFAULT_RULES, classifyBookmarks, sanitizeRules, validateRule } from "../src/shared/classifier.js";
 import { buildReorganizationPlan, describePlan } from "../src/shared/reorgPlan.js";
 import { STORAGE_KEYS, readStorage, writeStorage } from "../src/storage/storage.js";
@@ -35,12 +36,60 @@ async function handleMessage(message, sender) {
       return applyPlan(message.plan);
     case "ROLLBACK_LAST":
       return rollbackLastJob();
+    case "CREATE_BOOKMARK_BACKUP":
+      return createCurrentBookmarkBackup();
+    case "GET_BOOKMARK_BACKUP":
+      return describeBackup(await readStorage(STORAGE_KEYS.bookmarkBackup, null));
+    case "RESTORE_BOOKMARK_BACKUP":
+      return restoreBookmarkBackup();
     case "OPEN_SIDE_PANEL":
       await chrome.sidePanel.open({ windowId: sender?.tab?.windowId || chrome.windows?.WINDOW_ID_CURRENT || -2 });
       return { opened: true };
     default:
       throw new Error(`Unknown message type: ${message?.type}`);
   }
+}
+
+async function createCurrentBookmarkBackup() {
+  const tree = await chrome.bookmarks.getTree();
+  const bookmarks = flattenBookmarkTree(tree);
+  const backup = createBookmarkBackup(bookmarks);
+  await writeStorage(STORAGE_KEYS.bookmarkBackup, backup);
+  return describeBackup(backup);
+}
+
+async function restoreBookmarkBackup() {
+  const backup = await readStorage(STORAGE_KEYS.bookmarkBackup, null);
+  const operations = buildRestoreOperations(backup);
+  if (operations.length === 0) {
+    throw new Error("復元できるバックアップがありません。");
+  }
+
+  const restored = [];
+  const warnings = [];
+  for (const operation of operations) {
+    try {
+      const moveOptions = { parentId: operation.parentId };
+      if (Number.isInteger(operation.index)) {
+        moveOptions.index = operation.index;
+      }
+      const moved = await chrome.bookmarks.move(operation.bookmarkId, moveOptions);
+      restored.push({ bookmarkId: operation.bookmarkId, title: operation.title, moved });
+    } catch (error) {
+      warnings.push({
+        bookmarkId: operation.bookmarkId,
+        title: operation.title,
+        error: error.message || String(error)
+      });
+    }
+  }
+
+  return {
+    backup: describeBackup(backup),
+    restoredCount: restored.length,
+    warningCount: warnings.length,
+    warnings
+  };
 }
 
 async function saveRules(rules) {

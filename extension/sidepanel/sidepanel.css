@@ -150,6 +150,17 @@ h2 {
   gap: 8px;
 }
 
+.backup-section {
+  display: grid;
+  gap: 10px;
+}
+
+#backupStatusText {
+  color: #5f6b7a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 #applyButton {
   background: #b42318;
   border-color: #b42318;

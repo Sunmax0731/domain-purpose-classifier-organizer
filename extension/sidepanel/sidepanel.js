@@ -1,15 +1,19 @@
 const state = {
   bookmarks: [],
   results: [],
-  plan: null
+  plan: null,
+  backup: null
 };
 
 const elements = {
   scanButton: document.querySelector("#scanButton"),
   openOptionsButton: document.querySelector("#openOptionsButton"),
+  backupButton: document.querySelector("#backupButton"),
+  restoreBackupButton: document.querySelector("#restoreBackupButton"),
   applyButton: document.querySelector("#applyButton"),
   rollbackButton: document.querySelector("#rollbackButton"),
   statusText: document.querySelector("#statusText"),
+  backupStatusText: document.querySelector("#backupStatusText"),
   bookmarkCount: document.querySelector("#bookmarkCount"),
   actionCount: document.querySelector("#actionCount"),
   folderCount: document.querySelector("#folderCount"),
@@ -20,8 +24,11 @@ const elements = {
 
 elements.scanButton.addEventListener("click", scanAndClassify);
 elements.openOptionsButton.addEventListener("click", () => chrome.runtime.openOptionsPage());
+elements.backupButton.addEventListener("click", createBackup);
+elements.restoreBackupButton.addEventListener("click", restoreBackup);
 elements.applyButton.addEventListener("click", applyPlan);
 elements.rollbackButton.addEventListener("click", rollbackLast);
+refreshBackupStatus();
 
 async function scanAndClassify() {
   setBusy(true, "スキャン中...");
@@ -39,6 +46,60 @@ async function scanAndClassify() {
     logError(error);
   } finally {
     setBusy(false);
+  }
+}
+
+async function createBackup() {
+  const message = state.backup
+    ? "保存済みバックアップを現在のブックマーク状態で上書きします。実行しますか？"
+    : "現在のブックマーク状態をバックアップします。実行しますか？";
+  if (!confirm(message)) {
+    return;
+  }
+
+  setBusy(true, "バックアップ作成中...");
+  try {
+    state.backup = await sendMessage({ type: "CREATE_BOOKMARK_BACKUP" });
+    renderBackup();
+    log(`バックアップを作成しました。対象 ${state.backup.bookmarkCount} 件。`);
+  } catch (error) {
+    logError(error);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function restoreBackup() {
+  if (!state.backup) {
+    return;
+  }
+
+  const approved = confirm(
+    `バックアップ ${state.backup.bookmarkCount} 件を保存時点の親フォルダへ戻します。` +
+      "拡張機能が作成した空フォルダは削除しません。実行しますか？"
+  );
+  if (!approved) {
+    return;
+  }
+
+  setBusy(true, "バックアップから復元中...");
+  try {
+    const payload = await sendMessage({ type: "RESTORE_BOOKMARK_BACKUP" });
+    log(`バックアップから復元しました。復元 ${payload.restoredCount} 件、警告 ${payload.warningCount} 件。`);
+  } catch (error) {
+    logError(error);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function refreshBackupStatus() {
+  try {
+    state.backup = await sendMessage({ type: "GET_BOOKMARK_BACKUP" });
+    renderBackup();
+  } catch (error) {
+    state.backup = null;
+    renderBackup();
   }
 }
 
@@ -90,6 +151,19 @@ function renderAll() {
   elements.applyButton.disabled = !state.plan || state.plan.actions.length === 0;
   renderResults();
   renderPlan();
+  renderBackup();
+}
+
+function renderBackup() {
+  if (!state.backup) {
+    elements.backupStatusText.textContent = "保存済みバックアップはありません。";
+    elements.restoreBackupButton.disabled = true;
+    return;
+  }
+
+  const createdAt = new Date(state.backup.createdAt).toLocaleString();
+  elements.backupStatusText.textContent = `保存済み: ${createdAt} / ${state.backup.bookmarkCount} 件`;
+  elements.restoreBackupButton.disabled = false;
 }
 
 function renderResults() {
@@ -143,6 +217,8 @@ function renderPlan() {
 
 function setBusy(isBusy, text = null) {
   elements.scanButton.disabled = isBusy;
+  elements.backupButton.disabled = isBusy;
+  elements.restoreBackupButton.disabled = isBusy || !state.backup;
   elements.applyButton.disabled = isBusy || !state.plan || state.plan.actions.length === 0;
   if (text) {
     elements.statusText.textContent = text;
