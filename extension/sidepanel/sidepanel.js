@@ -85,7 +85,10 @@ async function restoreBackup() {
   setBusy(true, "バックアップから復元中...");
   try {
     const payload = await sendMessage({ type: "RESTORE_BOOKMARK_BACKUP" });
-    log(`バックアップから復元しました。復元 ${payload.restoredCount} 件、警告 ${payload.warningCount} 件。`);
+    log(
+      `バックアップから復元しました。復元 ${payload.restoredCount} 件、` +
+        `順序調整 ${payload.adjustedCount || 0} 件、警告 ${payload.warningCount} 件。`
+    );
   } catch (error) {
     logError(error);
   } finally {
@@ -135,7 +138,10 @@ async function rollbackLast() {
   setBusy(true, "復元中...");
   try {
     const payload = await sendMessage({ type: "ROLLBACK_LAST" });
-    log(`復元が完了しました。復元 ${payload.restoredCount} 件、警告 ${payload.warningCount} 件。`);
+    log(
+      `復元が完了しました。復元 ${payload.restoredCount} 件、` +
+        `順序調整 ${payload.adjustedCount || 0} 件、警告 ${payload.warningCount} 件。`
+    );
   } catch (error) {
     logError(error);
   } finally {

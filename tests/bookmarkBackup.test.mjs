@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildRestoreOperations,
   createBookmarkBackup,
+  createRestoreMoveOptions,
   describeBackup
 } from "../extension/src/shared/bookmarkBackup.js";
 
@@ -57,4 +58,16 @@ test("buildRestoreOperations sorts by parent and index", () => {
   });
 
   assert.deepEqual(operations.map((operation) => operation.bookmarkId), ["c", "a", "b"]);
+});
+
+test("createRestoreMoveOptions can omit index for fallback restores", () => {
+  const operation = {
+    bookmarkId: "a",
+    title: "A",
+    parentId: "2",
+    index: 10
+  };
+
+  assert.deepEqual(createRestoreMoveOptions(operation), { parentId: "2", index: 10 });
+  assert.deepEqual(createRestoreMoveOptions(operation, { includeIndex: false }), { parentId: "2" });
 });

@@ -46,6 +46,18 @@ export function buildRestoreOperations(backup) {
     });
 }
 
+export function createRestoreMoveOptions(operation, options = {}) {
+  if (!operation?.parentId) {
+    throw new Error("復元先の親フォルダがありません。");
+  }
+
+  const moveOptions = { parentId: String(operation.parentId) };
+  if (options.includeIndex !== false && Number.isInteger(operation.index)) {
+    moveOptions.index = operation.index;
+  }
+  return moveOptions;
+}
+
 export function createBackupId(now = new Date()) {
   const stamp = now.toISOString().replace(/[-:.TZ]/g, "");
   return `backup-${stamp}`;

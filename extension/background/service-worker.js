@@ -1,5 +1,10 @@
 import { flattenBookmarkTree } from "../src/shared/bookmarks.js";
-import { buildRestoreOperations, createBookmarkBackup, describeBackup } from "../src/shared/bookmarkBackup.js";
+import {
+  buildRestoreOperations,
+  createBookmarkBackup,
+  createRestoreMoveOptions,
+  describeBackup
+} from "../src/shared/bookmarkBackup.js";
 import { DEFAULT_RULES, classifyBookmarks, sanitizeRules, validateRule } from "../src/shared/classifier.js";
 import { buildReorganizationPlan, describePlan } from "../src/shared/reorgPlan.js";
 import { STORAGE_KEYS, readStorage, writeStorage } from "../src/storage/storage.js";
@@ -66,15 +71,15 @@ async function restoreBookmarkBackup() {
   }
 
   const restored = [];
+  const adjusted = [];
   const warnings = [];
   for (const operation of operations) {
     try {
-      const moveOptions = { parentId: operation.parentId };
-      if (Number.isInteger(operation.index)) {
-        moveOptions.index = operation.index;
+      const result = await moveBookmarkWithIndexFallback(operation);
+      restored.push({ bookmarkId: operation.bookmarkId, title: operation.title, moved: result.moved });
+      if (result.usedIndexFallback) {
+        adjusted.push({ bookmarkId: operation.bookmarkId, title: operation.title });
       }
-      const moved = await chrome.bookmarks.move(operation.bookmarkId, moveOptions);
-      restored.push({ bookmarkId: operation.bookmarkId, title: operation.title, moved });
     } catch (error) {
       warnings.push({
         bookmarkId: operation.bookmarkId,
@@ -87,6 +92,7 @@ async function restoreBookmarkBackup() {
   return {
     backup: describeBackup(backup),
     restoredCount: restored.length,
+    adjustedCount: adjusted.length,
     warningCount: warnings.length,
     warnings
   };
@@ -181,6 +187,7 @@ async function rollbackLastJob() {
   }
 
   const restored = [];
+  const adjusted = [];
   const warnings = [];
   for (const snapshot of job.rollbackSnapshot) {
     if (!snapshot.parentId) {
@@ -188,12 +195,16 @@ async function rollbackLastJob() {
     }
 
     try {
-      const options = { parentId: snapshot.parentId };
-      if (Number.isInteger(snapshot.index)) {
-        options.index = snapshot.index;
+      const result = await moveBookmarkWithIndexFallback({
+        bookmarkId: snapshot.id,
+        title: snapshot.title,
+        parentId: snapshot.parentId,
+        index: snapshot.index
+      });
+      restored.push({ bookmarkId: snapshot.id, title: snapshot.title, moved: result.moved });
+      if (result.usedIndexFallback) {
+        adjusted.push({ bookmarkId: snapshot.id, title: snapshot.title });
       }
-      const moved = await chrome.bookmarks.move(snapshot.id, options);
-      restored.push({ bookmarkId: snapshot.id, title: snapshot.title, moved });
     } catch (error) {
       warnings.push({
         bookmarkId: snapshot.id,
@@ -207,14 +218,36 @@ async function rollbackLastJob() {
     ...job,
     rollbackAt: new Date().toISOString(),
     rollbackStatus: warnings.length > 0 ? "completed-with-warnings" : "completed",
+    rollbackAdjustedCount: adjusted.length,
     rollbackWarnings: warnings
   };
   await writeStorage(STORAGE_KEYS.lastJob, updatedJob);
   return {
     restoredCount: restored.length,
+    adjustedCount: adjusted.length,
     warningCount: warnings.length,
     warnings
   };
+}
+
+async function moveBookmarkWithIndexFallback(operation) {
+  try {
+    const moved = await chrome.bookmarks.move(
+      operation.bookmarkId,
+      createRestoreMoveOptions(operation, { includeIndex: true })
+    );
+    return { moved, usedIndexFallback: false };
+  } catch (error) {
+    if (!Number.isInteger(operation.index)) {
+      throw error;
+    }
+
+    const moved = await chrome.bookmarks.move(
+      operation.bookmarkId,
+      createRestoreMoveOptions(operation, { includeIndex: false })
+    );
+    return { moved, usedIndexFallback: true, originalError: error.message || String(error) };
+  }
 }
 
 async function getDefaultParentId() {
