@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bookmark Purpose Organizer</title>
+    <link rel="stylesheet" href="sidepanel.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>Bookmark Purpose Organizer</h1>
+          <p id="statusText">未スキャン</p>
+        </div>
+        <button id="scanButton" class="primary-button" type="button">スキャンして分類</button>
+      </header>
+
+      <section class="summary-grid" aria-label="分類サマリー">
+        <article>
+          <span>ブックマーク</span>
+          <strong id="bookmarkCount">0</strong>
+        </article>
+        <article>
+          <span>移動候補</span>
+          <strong id="actionCount">0</strong>
+        </article>
+        <article>
+          <span>作成予定</span>
+          <strong id="folderCount">0</strong>
+        </article>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-heading">
+          <h2>分類結果</h2>
+          <button id="openOptionsButton" type="button">ルール編集</button>
+        </div>
+        <div id="resultList" class="result-list empty">スキャンすると分類候補が表示されます。</div>
+      </section>
+
+      <section class="panel-section">
+        <h2>変更プレビュー</h2>
+        <div id="planList" class="plan-list empty">整理計画はまだありません。</div>
+      </section>
+
+      <section class="danger-zone">
+        <button id="applyButton" type="button" disabled>プレビュー済みの整理を適用</button>
+        <button id="rollbackButton" type="button">直前の整理を復元</button>
+      </section>
+
+      <pre id="messageLog" class="message-log" aria-live="polite"></pre>
+    </main>
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>

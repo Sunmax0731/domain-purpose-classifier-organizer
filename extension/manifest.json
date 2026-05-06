@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark Purpose Organizer",
+  "version": "0.1.0",
+  "description": "Classify saved bookmarks by domain, purpose, usage, and theme before safely organizing them into folders.",
+  "permissions": [
+    "bookmarks",
+    "storage",
+    "sidePanel"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Bookmark Purpose Organizer",
+    "default_popup": "popup/popup.html"
+  },
+  "options_page": "options/options.html",
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  }
+}

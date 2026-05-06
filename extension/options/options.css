@@ -1,0 +1,97 @@
+:root {
+  color-scheme: light dark;
+  font-family: "Segoe UI", "Noto Sans JP", system-ui, sans-serif;
+  background: #f6f7f9;
+  color: #17202a;
+}
+
+body {
+  margin: 0;
+}
+
+.options-shell {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 auto;
+  max-width: 960px;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+p {
+  color: #5f6b7a;
+  margin-top: 6px;
+}
+
+textarea {
+  border: 1px solid #c7ccd4;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 13px;
+  min-height: 520px;
+  padding: 14px;
+  resize: vertical;
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  border: 1px solid #c7ccd4;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  cursor: pointer;
+  font: inherit;
+  min-height: 38px;
+  padding: 8px 14px;
+}
+
+#saveButton {
+  background: #175cd3;
+  border-color: #175cd3;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+pre {
+  background: #101828;
+  border-radius: 8px;
+  color: #d0d5dd;
+  min-height: 42px;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    background: #101418;
+    color: #ecf0f4;
+  }
+
+  p {
+    color: #aab4c2;
+  }
+
+  textarea,
+  button {
+    background: #171c22;
+    border-color: #2d3642;
+    color: #ecf0f4;
+  }
+}

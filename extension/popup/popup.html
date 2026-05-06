@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bookmark Purpose Organizer</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="popup-shell">
+      <h1>Bookmark Purpose Organizer</h1>
+      <p>分類、変更プレビュー、適用、直前復元は Side Panel で行います。</p>
+      <button id="openSidePanelButton" type="button">Side Panel を開く</button>
+      <button id="openOptionsButton" type="button">Options を開く</button>
+      <small>要求権限: bookmarks / storage / sidePanel</small>
+      <pre id="statusLog" aria-live="polite"></pre>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

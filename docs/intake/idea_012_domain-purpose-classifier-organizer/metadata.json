@@ -1,0 +1,33 @@
+{
+  "domain": "ChromeExtension",
+  "no": 12,
+  "platform": "ChromeExtension",
+  "field": "bookmark-organization",
+  "integration": "",
+  "idea": "bookmark-domain-purpose-folder-organizer",
+  "overview": "Classify saved bookmarks by domain, site purpose, usage, business category, and learning theme, then organize them into bookmark folders with editable rules and reclassification support.",
+  "problem": "Bookmark collections become hard to search and maintain, and existing bookmark tools do not make practical multi-axis reorganization easy.",
+  "similar": "Raindrop.io, Toby, OneTab, Workona, Chrome bookmark manager, bookmark managers",
+  "diff": "Targets bookmarks directly, supports multi-axis classification beyond domains, and applies results to bookmark folders with user-adjustable rules.",
+  "parent": "Plugins",
+  "startPromptFile": "START_PROMPT.md",
+  "documents": [
+    "START_PROMPT.md",
+    "README.md",
+    "01_REQUIREMENTS.md",
+    "02_SPECIFICATION.md",
+    "03_DESIGN.md",
+    "04_IMPLEMENTATION_PLAN.md",
+    "05_TEST_PLAN.md",
+    "06_RELEASE_CHECKLIST.md",
+    "AGENTS.md",
+    "SKILL.md",
+    "Design.md",
+    "Architecture.md",
+    "TODO.md",
+    "metadata.json"
+  ],
+  "repositoryName": "domain-purpose-classifier-organizer",
+  "repositoryTitle": "domain-purpose-classifier-organizer",
+  "zipFile": "idea_012_domain-purpose-classifier-organizer.zip"
+}
