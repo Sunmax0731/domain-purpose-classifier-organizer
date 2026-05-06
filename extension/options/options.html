@@ -8,14 +8,159 @@
   </head>
   <body>
     <main class="options-shell">
-      <header>
-        <h1>分類ルール</h1>
-        <p>ルールは上からではなく `priority` の高い順に評価されます。</p>
+      <header class="page-header">
+        <div>
+          <h1>分類ルール</h1>
+          <p>分類先の設定、サイトの割り当て、ルール管理、JSON 直接編集に対応します。</p>
+        </div>
+        <div class="rule-stats" id="ruleStats" aria-live="polite"></div>
       </header>
-      <textarea id="rulesEditor" spellcheck="false" aria-label="分類ルール JSON"></textarea>
+
+      <nav class="mode-tabs" aria-label="分類ルール編集モード">
+        <button class="mode-tab active" type="button" data-mode="builder">分類先設定</button>
+        <button class="mode-tab" type="button" data-mode="board">サイト割り当て</button>
+        <button class="mode-tab" type="button" data-mode="rules">ルール管理</button>
+        <button class="mode-tab" type="button" data-mode="json">JSON 編集</button>
+      </nav>
+
+      <section id="builderPanel" class="mode-panel">
+        <form id="ruleForm" class="rule-form">
+          <div class="form-row form-row-category">
+            <label class="field-parent">
+              <span class="label-row">大項目 <span class="field-badge required">必須</span></span>
+              <select id="parentFolderSelect"></select>
+            </label>
+            <label id="newParentFolderLabel" class="field-new-parent" hidden>
+              <span class="label-row">新規大項目 <span class="field-badge required">必須</span></span>
+              <input id="newParentFolderInput" type="text" placeholder="開発" autocomplete="off" disabled>
+            </label>
+            <label class="field-target">
+              <span class="label-row">中項目 <span class="field-badge required">必須</span></span>
+              <select id="targetFolderSelect"></select>
+            </label>
+            <label id="newTargetFolderLabel" class="field-new-target" hidden>
+              <span class="label-row">新規中項目 <span class="field-badge required">必須</span></span>
+              <input id="newTargetFolderInput" type="text" placeholder="コード管理" autocomplete="off" disabled>
+            </label>
+          </div>
+
+          <div class="form-row form-row-main">
+            <label class="field-icon">
+              <span class="label-row">アイコン / サムネイル <span class="field-badge required">必須</span></span>
+              <select id="targetIconSelect"></select>
+            </label>
+            <label id="customIconLabel" class="field-custom-icon" hidden>
+              <span class="label-row">カスタムアイコン / 画像 URL <span class="field-badge required">必須</span></span>
+              <input id="customIconInput" type="text" placeholder="AI または https://example.com/icon.png" autocomplete="off" disabled>
+            </label>
+            <label class="field-axis">
+              <span class="label-row">軸 <span class="field-badge required">必須</span></span>
+              <select id="axisSelect">
+                <option value="purpose">目的</option>
+                <option value="usage">用途</option>
+                <option value="theme">テーマ</option>
+              </select>
+            </label>
+            <label class="field-priority">
+              <span class="label-row">優先度 <span class="field-badge required">必須</span></span>
+              <input id="priorityInput" type="number" min="1" max="200" step="1" value="85">
+            </label>
+            <label class="field-name">
+              <span class="label-row">表示名 <span class="field-badge optional">任意</span></span>
+              <input id="ruleNameInput" type="text" placeholder="未入力ならドメイン名" autocomplete="off">
+            </label>
+          </div>
+
+          <div class="form-row form-row-detail">
+            <label class="field-reason">
+              <span class="label-row">理由 <span class="field-badge optional">任意</span></span>
+              <input id="reasonInput" type="text" placeholder="未入力ならドメイン理由" autocomplete="off">
+            </label>
+            <label class="field-url">
+              <span class="label-row">サイト URL <span class="field-badge optional">任意</span></span>
+              <input id="urlInput" type="url" placeholder="https://example.com/page" autocomplete="off">
+            </label>
+            <label class="field-detected">
+              <span class="label-row">認識ドメイン <span class="field-badge optional">自動</span></span>
+              <output id="detectedDomain" class="detected-domain">ドメイン未検出</output>
+            </label>
+            <button id="addRuleButton" type="submit">分類先を追加</button>
+          </div>
+        </form>
+
+        <section class="category-manager" aria-label="分類先一覧">
+          <div id="categoryManagerList" class="category-manager-list empty">分類先はまだありません。</div>
+        </section>
+
+        <div class="candidate-toolbar">
+          <label class="inline-label">
+            候補元
+            <select id="candidateSourceSelect">
+              <option value="bookmarks">現在のブックマーク</option>
+              <option value="common">主要サイト</option>
+              <option value="all">現在 + 主要サイト</option>
+            </select>
+          </label>
+          <fieldset class="axis-options" aria-label="候補作成の軸">
+            <legend>軸</legend>
+            <div class="axis-option-row">
+              <label><input id="candidateAxisPurpose" type="checkbox" value="purpose" checked> 目的</label>
+              <label><input id="candidateAxisUsage" type="checkbox" value="usage" checked> 用途</label>
+              <label><input id="candidateAxisTheme" type="checkbox" value="theme" checked> テーマ</label>
+            </div>
+          </fieldset>
+          <button id="analyzeBookmarksButton" type="button">候補作成</button>
+          <button id="addAllCandidatesButton" type="button" disabled>候補をまとめて追加</button>
+          <span id="candidateSummary" aria-live="polite">候補はまだありません。</span>
+        </div>
+
+        <div id="candidateList" class="rule-grid empty">候補を作成するとここに表示されます。</div>
+      </section>
+
+      <section id="boardPanel" class="mode-panel" hidden>
+        <div class="board-toolbar">
+          <button id="loadSitesButton" type="button">現在のブックマークを読み込む</button>
+          <label class="filter-label">
+            サイト検索
+            <input id="siteFilterInput" type="search" placeholder="host / domain / title" autocomplete="off">
+          </label>
+          <div class="view-tabs" aria-label="サイト一覧の表示方法">
+            <button class="site-view-tab active" type="button" data-site-view="grid">グリッド</button>
+            <button class="site-view-tab" type="button" data-site-view="list">リスト</button>
+          </div>
+          <label class="check-label">
+            <input id="hideAssignedSitesInput" type="checkbox">
+            分類済みを非表示
+          </label>
+          <span id="siteSummary" aria-live="polite">未読み込み</span>
+        </div>
+        <div class="assignment-board">
+          <aside class="category-board" aria-label="分類先">
+            <div id="categoryDropList" class="category-drop-list"></div>
+          </aside>
+          <section class="site-board" aria-label="サイト一覧">
+            <div id="siteSourceList" class="site-source-grid empty">サイトを読み込むとここに表示されます。</div>
+          </section>
+        </div>
+      </section>
+
+      <section id="rulesPanel" class="mode-panel" hidden>
+        <div class="view-tabs" aria-label="ルール管理の表示方法">
+          <button class="view-tab active" type="button" data-view="group">グループ</button>
+          <button class="view-tab" type="button" data-view="grid">グリッド</button>
+          <button class="view-tab" type="button" data-view="list">リスト</button>
+        </div>
+        <div id="ruleCards" class="rule-groups"></div>
+      </section>
+
+      <section id="jsonPanel" class="mode-panel" hidden>
+        <textarea id="rulesEditor" spellcheck="false" aria-label="分類ルール JSON"></textarea>
+      </section>
+
       <div class="actions">
         <button id="saveButton" type="button">保存</button>
         <button id="resetButton" type="button">初期ルールへ戻す</button>
+        <button id="clearAllRulesButton" class="danger-button" type="button">全ルール削除</button>
       </div>
       <pre id="statusLog" aria-live="polite"></pre>
     </main>

@@ -104,12 +104,19 @@ h2 {
 .section-heading {
   align-items: center;
   display: flex;
+  gap: 8px;
   justify-content: space-between;
   margin-bottom: 10px;
 }
 
+.section-actions {
+  display: flex;
+  gap: 6px;
+}
+
 .result-list,
-.plan-list {
+.plan-list,
+.broken-link-list {
   display: grid;
   gap: 8px;
   max-height: 360px;
@@ -122,21 +129,24 @@ h2 {
 }
 
 .result-item,
-.plan-item {
+.plan-item,
+.broken-link-item {
   border: 1px solid #e2e7ef;
   border-radius: 8px;
   padding: 10px;
 }
 
 .result-item strong,
-.plan-item strong {
+.plan-item strong,
+.broken-link-item strong {
   display: block;
   font-size: 13px;
   line-height: 1.4;
 }
 
 .result-item span,
-.plan-item span {
+.plan-item span,
+.broken-link-item span {
   color: #5f6b7a;
   display: block;
   font-size: 12px;
@@ -155,7 +165,8 @@ h2 {
   gap: 10px;
 }
 
-#backupStatusText {
+#backupStatusText,
+#linkCheckSummary {
   color: #5f6b7a;
   font-size: 12px;
   line-height: 1.5;
@@ -164,6 +175,13 @@ h2 {
 #applyButton {
   background: #b42318;
   border-color: #b42318;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+#deleteBrokenLinksButton {
+  background: #7a271a;
+  border-color: #7a271a;
   color: #ffffff;
   font-weight: 700;
 }
@@ -195,6 +213,19 @@ h2 {
   display: none;
 }
 
+.options-embed-section[hidden] {
+  display: none;
+}
+
+.options-frame {
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  display: block;
+  height: min(760px, calc(100vh - 190px));
+  min-height: 560px;
+  width: 100%;
+}
+
 .warning-list strong,
 .warning-list span {
   display: block;
@@ -214,7 +245,8 @@ h2 {
 
   button,
   .summary-grid article,
-  .panel-section {
+  .panel-section,
+  .options-frame {
     background: #171c22;
     border-color: #2d3642;
     color: #ecf0f4;
@@ -224,12 +256,15 @@ h2 {
   .summary-grid span,
   .result-item span,
   .plan-item span,
+  .broken-link-item span,
+  #linkCheckSummary,
   .empty {
     color: #aab4c2;
   }
 
   .result-item,
-  .plan-item {
+  .plan-item,
+  .broken-link-item {
     border-color: #2d3642;
   }
 }

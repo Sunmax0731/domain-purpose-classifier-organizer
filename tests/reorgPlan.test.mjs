@@ -42,7 +42,44 @@ test("describePlan summarizes action, folder, and rollback counts", () => {
 
   assert.deepEqual(describePlan(plan), {
     actionCount: 2,
+    moveCount: 2,
+    deleteCount: 0,
     folderCount: 2,
+    rollbackCount: 1
+  });
+});
+
+test("buildReorganizationPlan creates delete actions for deletion category", () => {
+  const plan = buildReorganizationPlan(
+    [
+      {
+        bookmarkId: "40",
+        title: "Old bookmark",
+        url: "https://example.com/old",
+        path: ["Bookmarks bar", "削除予定"],
+        deleteOnApply: true,
+        targetPathSegments: ["整理", "削除予定"],
+        reasons: ["削除予定として明示されたブックマーク"],
+        confidence: 0.95
+      }
+    ],
+    {
+      now: new Date("2026-05-06T00:00:00.000Z"),
+      sourceBookmarks: [
+        { id: "40", title: "Old bookmark", url: "https://example.com/old", parentId: "1", index: 0, path: ["Bookmarks bar", "削除予定"] }
+      ]
+    }
+  );
+
+  assert.equal(plan.actions.length, 1);
+  assert.equal(plan.actions[0].type, "delete");
+  assert.deepEqual(plan.actions[0].targetPath, []);
+  assert.deepEqual(plan.foldersToCreate, []);
+  assert.deepEqual(describePlan(plan), {
+    actionCount: 1,
+    moveCount: 0,
+    deleteCount: 1,
+    folderCount: 0,
     rollbackCount: 1
   });
 });

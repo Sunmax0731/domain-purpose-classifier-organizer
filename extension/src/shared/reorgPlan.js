@@ -1,4 +1,4 @@
-import { AXIS_LABELS } from "./classifier.js";
+import { AXIS_LABELS, isDeletionTarget } from "./classifier.js";
 import { createBookmarkSnapshot } from "./bookmarks.js";
 
 export function buildReorganizationPlan(results, options = {}) {
@@ -13,20 +13,31 @@ export function buildReorganizationPlan(results, options = {}) {
     }
 
     const selectedAxis = result.selectedAxis || axis;
-    const category = result.suggestedCategory || result.axes?.[axis] || result.domain || "未分類";
+    const targetSegments = Array.isArray(result.targetPathSegments) && result.targetPathSegments.length > 0
+      ? result.targetPathSegments
+      : [AXIS_LABELS[selectedAxis] || selectedAxis || "未分類", result.suggestedCategory || result.axes?.[axis] || result.domain || "未分類"];
     const targetPath = [
       normalizeFolderSegment(rootTitle),
-      AXIS_LABELS[selectedAxis] || AXIS_LABELS.domain,
-      normalizeFolderSegment(category)
+      ...targetSegments.map((segment) => normalizeFolderSegment(segment))
     ];
+    const deleteOnApply = result.deleteOnApply || isDeletionTarget({
+      parentFolder: targetSegments[0],
+      targetFolder: targetSegments[1]
+    });
 
     actions.push({
-      type: "move",
+      type: deleteOnApply ? "delete" : "move",
       bookmarkId: String(result.bookmarkId),
       title: result.title || result.url,
       url: result.url,
       fromPath: Array.isArray(result.path) ? [...result.path] : [],
-      targetPath,
+      targetPath: deleteOnApply ? [] : targetPath,
+      deleteTarget: deleteOnApply
+        ? {
+          parentFolder: targetSegments[0],
+          targetFolder: targetSegments[1]
+        }
+        : null,
       reason: (result.reasons || []).join(" / "),
       confidence: result.confidence ?? 0
     });
@@ -47,6 +58,9 @@ export function buildReorganizationPlan(results, options = {}) {
 export function collectFolderPaths(actions) {
   const seen = new Set();
   for (const action of actions || []) {
+    if (action.type === "delete") {
+      continue;
+    }
     const key = (action.targetPath || []).join("/");
     if (key) {
       seen.add(key);
@@ -69,8 +83,11 @@ export function createPlanId(now = new Date()) {
 }
 
 export function describePlan(plan) {
+  const actions = Array.isArray(plan?.actions) ? plan.actions : [];
   return {
-    actionCount: plan?.actions?.length || 0,
+    actionCount: actions.length,
+    moveCount: actions.filter((action) => action.type !== "delete").length,
+    deleteCount: actions.filter((action) => action.type === "delete").length,
     folderCount: plan?.foldersToCreate?.length || 0,
     rollbackCount: plan?.rollbackSnapshot?.length || 0
   };
