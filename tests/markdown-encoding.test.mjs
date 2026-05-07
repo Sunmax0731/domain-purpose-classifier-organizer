@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const mojibakeFragments = ["繧", "郢", "髫", "�"];
+const mojibakeFragments = ["\u7e67", "\u90e2", "\u9aeb", "\ufffd"];
 
 test("markdown files do not contain common mojibake fragments", async () => {
   const files = await collectMarkdownFiles(root);

@@ -30,7 +30,7 @@ npm test
 - すべての Node.js 自動テストが成功する。
 - 基本権限は `bookmarks`、`storage`、`sidePanel` である。
 - リンク切れチェック用 host permission は `http://*/*`、`https://*/*` に限定されている。
-- Markdown 文書に `繧` `郢` `髫` `�` が含まれていない。
+- Markdown 文書に典型的な文字化け断片が含まれていない。
 
 ## 手動テスト
 
