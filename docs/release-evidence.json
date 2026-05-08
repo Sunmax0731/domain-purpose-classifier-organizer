@@ -1,0 +1,32 @@
+{
+  "product": "domain-purpose-classifier-organizer",
+  "repository": "Sunmax0731/domain-purpose-classifier-organizer",
+  "githubUrl": "https://github.com/Sunmax0731/domain-purpose-classifier-organizer",
+  "tag": "v0.1.0-alpha.1",
+  "releaseUrl": "https://github.com/Sunmax0731/domain-purpose-classifier-organizer/releases/tag/v0.1.0-alpha.1",
+  "prerelease": true,
+  "latest": false,
+  "assetCount": 3,
+  "assets": [
+    "domain-purpose-classifier-organizer-docs.zip",
+    "manual-test.md",
+    "strict-manual-test-addendum.md"
+  ],
+  "platformRuntimeGate": "dist/platform-runtime-gate-result.json",
+  "platformType": "chrome-extension",
+  "manualTest": "not-run-by-codex",
+  "qcdsEvaluation": {
+    "Quality": "S-",
+    "Cost": "S-",
+    "Delivery": "S-",
+    "Satisfaction": "S-",
+    "capReason": "manual-test-not-run-by-codex"
+  },
+  "github": {
+    "repo": "Sunmax0731/domain-purpose-classifier-organizer",
+    "url": "https://github.com/Sunmax0731/domain-purpose-classifier-organizer",
+    "releaseUrl": "https://github.com/Sunmax0731/domain-purpose-classifier-organizer/releases/tag/v0.1.0-alpha.1",
+    "prerelease": true,
+    "latest": false
+  }
+}

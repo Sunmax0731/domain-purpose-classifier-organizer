@@ -1,0 +1,11 @@
+{
+  "product": "domain-purpose-classifier-organizer",
+  "title": "ブックマーク分類・フォルダ自動整理",
+  "domain": "ChromeExtension",
+  "ideaNo": 12,
+  "platformType": "chrome-extension",
+  "expectedPublicTarget": "Chrome Web Store",
+  "browser": null,
+  "android": null,
+  "evidence": "dist/platform-runtime-gate-result.json"
+}

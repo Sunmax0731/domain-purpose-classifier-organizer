@@ -5,8 +5,10 @@
   "type": "module",
   "description": "Chrome Extension MVP for classifying bookmarks by domain, purpose, usage, and theme before safely organizing them into folders.",
   "scripts": {
-    "test": "node --test tests/*.test.mjs",
-    "validate": "npm test"
+    "test": "node --test tests/*.test.mjs && node tools/platform-runtime-gate.mjs && node tools/closed-alpha-guard.mjs",
+    "validate": "npm test",
+    "platform:gate": "node tools/platform-runtime-gate.mjs",
+    "closed-alpha:guard": "node tools/closed-alpha-guard.mjs"
   },
   "keywords": [
     "chrome-extension",
