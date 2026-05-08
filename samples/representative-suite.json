@@ -1,0 +1,87 @@
+{
+  "product": "domain-purpose-classifier-organizer",
+  "scenarios": [
+    {
+      "id": "happy-path",
+      "input": {
+        "items": [
+          {
+            "id": "ok-1",
+            "title": "ブックマーク分類・フォルダ自動整理",
+            "owner": "closed-alpha",
+            "status": "ready"
+          }
+        ]
+      },
+      "expected": {
+        "result": "passed",
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "missing-required",
+      "input": {
+        "items": [
+          {
+            "id": "missing-1",
+            "title": "",
+            "status": "ready"
+          }
+        ]
+      },
+      "expected": {
+        "result": "failed",
+        "errors": 1,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "warning",
+      "input": {
+        "items": [
+          {
+            "id": "warn-1",
+            "title": "ブックマーク分類・フォルダ自動整理",
+            "owner": "closed-alpha",
+            "status": "needs-review"
+          }
+        ]
+      },
+      "expected": {
+        "result": "warning",
+        "errors": 0,
+        "warnings": 1
+      }
+    },
+    {
+      "id": "mixed-batch",
+      "input": {
+        "items": [
+          {
+            "id": "ok-2",
+            "title": "ブックマーク分類・フォルダ自動整理",
+            "owner": "closed-alpha",
+            "status": "ready"
+          },
+          {
+            "id": "missing-2",
+            "title": "",
+            "status": "ready"
+          },
+          {
+            "id": "warn-2",
+            "title": "ブックマーク分類・フォルダ自動整理",
+            "owner": "closed-alpha",
+            "status": "needs-review"
+          }
+        ]
+      },
+      "expected": {
+        "result": "failed",
+        "errors": 1,
+        "warnings": 1
+      }
+    }
+  ]
+}

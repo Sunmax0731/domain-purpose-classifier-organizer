@@ -1,0 +1,39 @@
+{
+  "repository": "domain-purpose-classifier-organizer",
+  "gradeScale": [
+    "S+",
+    "S-",
+    "A+",
+    "A-",
+    "B+",
+    "B-",
+    "C+",
+    "C-",
+    "D+",
+    "D-"
+  ],
+  "qcdsDefinition": {
+    "Quality": "実装、代表シナリオ、実行プラットフォームゲート、security/privacy、traceability の品質。",
+    "Cost": "追加環境、依存、運用負荷、保守容易性。",
+    "Delivery": "release checklist、docs ZIP、GitHub prerelease、release evidence の到達度。",
+    "Satisfaction": "利用者が導入、操作、手動テスト、次の改善判断へ迷わず進める満足度。"
+  },
+  "grades": {
+    "Quality": "A-",
+    "Cost": "A-",
+    "Delivery": "A-",
+    "Satisfaction": "A-"
+  },
+  "manualTestStatus": "not-run-by-codex",
+  "manualTestCapApplied": true,
+  "platformRuntimeGate": {
+    "product": "domain-purpose-classifier-organizer",
+    "platformType": "chrome-extension",
+    "pass": true,
+    "method": "runtime-gate",
+    "manualTest": "not-run-by-codex",
+    "manifest": "extension/manifest.json",
+    "manifestVersion": 3
+  },
+  "belowAMinus": []
+}
