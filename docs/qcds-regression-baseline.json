@@ -1,0 +1,34 @@
+{
+  "product": "domain-purpose-classifier-organizer",
+  "baselineVersion": "v0.1.0-alpha.1",
+  "platformType": "chrome-extension",
+  "expectedValidationResult": "pass",
+  "expectedPlatformRuntimeGate": "pass",
+  "expectedQcdsMinimum": "A-",
+  "manualTestStatus": "not-run-by-codex",
+  "releaseAssetContract": [
+    "dist/domain-purpose-classifier-organizer-docs.zip",
+    "docs/manual-test.md",
+    "docs/strict-manual-test-addendum.md"
+  ],
+  "representativeScenarios": [
+    "happy-path",
+    "missing-required",
+    "warning",
+    "mixed-batch"
+  ],
+  "regressionChecks": [
+    {
+      "name": "Chrome extension manifest v3 is present",
+      "expected": "extension/manifest.json passes platform runtime gate"
+    },
+    {
+      "name": "Closed alpha release evidence remains complete",
+      "expected": "GitHub prerelease, asset contract, docs ZIP, and manual test files stay aligned"
+    },
+    {
+      "name": "QCDS cap is respected before user manual test",
+      "expected": "All QCDS axes are A- or above and no S+ is assigned before manual testing"
+    }
+  ]
+}
