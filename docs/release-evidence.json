@@ -2,31 +2,60 @@
   "product": "domain-purpose-classifier-organizer",
   "repository": "Sunmax0731/domain-purpose-classifier-organizer",
   "githubUrl": "https://github.com/Sunmax0731/domain-purpose-classifier-organizer",
-  "tag": "v0.1.0-alpha.1",
   "releaseUrl": "https://github.com/Sunmax0731/domain-purpose-classifier-organizer/releases/tag/v0.1.0-alpha.1",
+  "tag": "v0.1.0-alpha.1",
   "prerelease": true,
   "latest": false,
-  "assetCount": 3,
-  "assets": [
-    "domain-purpose-classifier-organizer-docs.zip",
-    "manual-test.md",
-    "strict-manual-test-addendum.md"
-  ],
-  "platformRuntimeGate": "dist/platform-runtime-gate-result.json",
-  "platformType": "chrome-extension",
-  "manualTest": "not-run-by-codex",
-  "qcdsEvaluation": {
-    "Quality": "S-",
-    "Cost": "S-",
-    "Delivery": "S-",
-    "Satisfaction": "S-",
-    "capReason": "manual-test-not-run-by-codex"
+  "latestCheck": {
+    "endpoint": "not-found-or-no-stable-release",
+    "latestTag": null,
+    "latestIsThisPrerelease": false
   },
-  "github": {
-    "repo": "Sunmax0731/domain-purpose-classifier-organizer",
-    "url": "https://github.com/Sunmax0731/domain-purpose-classifier-organizer",
-    "releaseUrl": "https://github.com/Sunmax0731/domain-purpose-classifier-organizer/releases/tag/v0.1.0-alpha.1",
-    "prerelease": true,
-    "latest": false
+  "assetCount": 3,
+  "assets": {
+    "required": [
+      "dist/domain-purpose-classifier-organizer-docs.zip",
+      "docs/manual-test.md",
+      "docs/strict-manual-test-addendum.md"
+    ],
+    "actualNames": [
+      "domain-purpose-classifier-organizer-docs.zip",
+      "manual-test.md",
+      "strict-manual-test-addendum.md"
+    ],
+    "actualCount": 3,
+    "allRequiredPresent": true
+  },
+  "qcdsEvaluation": {
+    "Quality": "A-",
+    "Cost": "A-",
+    "Delivery": "A-",
+    "Satisfaction": "A-"
+  },
+  "platformRuntimeGate": {
+    "product": "domain-purpose-classifier-organizer",
+    "platformType": "chrome-extension",
+    "pass": true,
+    "method": "runtime-gate",
+    "manualTest": "not-run-by-codex",
+    "manifest": "extension/manifest.json",
+    "manifestVersion": 3
+  },
+  "automatedTests": [
+    {
+      "command": "npm test",
+      "result": "passed"
+    }
+  ],
+  "manualTest": "not-run-by-codex",
+  "git": {
+    "ahead": 0,
+    "behind": 0,
+    "status": "",
+    "localCodex": [
+      "codex/closed-alpha-release"
+    ],
+    "remoteCodex": [],
+    "clean": false
   }
 }
